@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, email, displayName, photoURL, updatedAt, settings
+    //
+    // Collection: history
+    // Fields: userId, problem, solutions, imageUrl, createdAt
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isRecent(time) {
+      return time > request.time - duration.value(5, 'm') &&
+             time < request.time + duration.value(5, 'm');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             data.email is string &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 1000)) &&
+             (!('isPremium' in data) || data.isPremium is bool) &&
+             (!('settings' in data) || data.settings is map) &&
+             (!('problemsSolved' in data) || data.problemsSolved is int) &&
+             (!('updatedAt' in data) || isRecent(data.updatedAt));
+    }
+
+    function isValidHistory(data) {
+      return data.keys().hasAll(['userId', 'problem', 'solutions', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.problem is string &&
+             data.problem.size() > 0 &&
+             data.problem.size() < 5000 &&
+             data.solutions is list &&
+             data.solutions.size() > 0 &&
+             data.solutions.size() < 20 &&
+             isRecent(data.createdAt);
+    }
+
+    match /users/{userId} {
+      // Allow reading public profile info for leaderboard
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /history/{historyId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidHistory(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

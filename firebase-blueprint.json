@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user preferences and profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID from Firebase Auth" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "isPremium": { "type": "boolean", "description": "Whether the user has a premium subscription" },
+        "problemsSolved": { "type": "integer", "description": "Total number of math problems solved by the user" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "voiceName": { "type": "string" },
+            "voiceLanguage": { "type": "string" },
+            "locationEnabled": { "type": "boolean" },
+            "difficultyLevel": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+            "autoDetectContext": { "type": "boolean" },
+            "searchEnabled": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "MathHistory": {
+      "title": "Math Problem History",
+      "description": "Stores the history of math problems solved by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "problem": { "type": "string" },
+        "solutions": { "type": "array" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "problem", "solutions", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/history/{historyId}": {
+      "schema": "MathHistory",
+      "description": "Collection of solved math problems"
+    }
+  }
+}

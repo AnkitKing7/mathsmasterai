@@ -1,0 +1,5 @@
+{
+  "name": "MathMaster AI",
+  "description": "Expert math solutions for 1st to 12th Standard. Snap a photo for step-by-step logic, voice guidance, and interactive tutoring.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}
