@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24-preview' as any,
+  apiVersion: '2024-12-18.acacia' as any,
 });
 
 async function startServer() {
